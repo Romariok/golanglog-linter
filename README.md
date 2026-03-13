@@ -18,75 +18,67 @@
 
 ---
 
-## Установка и использование
+## Быстрый старт
+
+> Другие варианты запуска (go vet, Go Plugin, CLI флаги) — в [`docs/QUICKSTART.md`](docs/QUICKSTART.md).
 
 ### Требования
 
 - Go 1.22+
-- golangci-lint v2.x (для интеграции как плагина)
+- golangci-lint v2.x
 
-### Вариант 1 — Самостоятельный инструмент (`go vet`)
+### Module-плагин для `golangci-lint`
 
-```bash
-go install github.com/romariok/golanglog-linter/cmd/golanglog-linter@latest
-go vet -vettool=$(which golanglog-linter) ./...
+Создать `.custom-gcl.yml` в корне проекта:
+
+```yaml
+version: v2.11.3
+plugins:
+  - module: 'github.com/romariok/golanglog-linter'
+    import: 'github.com/romariok/golanglog-linter/plugin'
+    version: latest
 ```
 
-### Вариант 2 — Плагин для `golangci-lint`
-
-Собрать shared object плагина:
+Собрать кастомный бинарник:
 
 ```bash
-go build -buildmode=plugin -o golanglog.so ./plugin/
+golangci-lint custom           # создаёт ./custom-gcl
 ```
 
 Добавить в `.golangci.yml`:
 
 ```yaml
+version: "2"
+
 linters:
   enable:
     - golanglog
-
-linters-settings:
-  custom:
-    golanglog:
-      type: module
-      path: ./golanglog.so
-      description: "Validates log message style and security"
-      settings:
-        rules:
-          lowercase: true
-          english: true
-          special-chars: true
-          sensitive: true
-        sensitive-keywords:
-          - password
-          - token
-          - secret
-          - api_key
-        custom-patterns:
-          - "credit.?card"
-          - "ssn"
+  settings:
+    custom:
+      golanglog:
+        type: "module"
+        description: "Validates log message style and security"
+        settings:
+          rules:
+            lowercase: true
+            english: true
+            special-chars: true
+            sensitive: true
+          sensitive-keywords:
+            - password
+            - token
+            - secret
+            - api_key
+          custom-patterns:
+            - "credit.?card"
+            - "ssn"
 ```
 
 Запустить:
 
 ```bash
-golangci-lint run              # проверка
-golangci-lint run --fix        # проверка + автоисправление правила 1
-```
-
-### Вариант 3 — Флаги CLI
-
-```bash
-golanglog-linter \
-  -rules.lowercase=true \
-  -rules.english=true \
-  -rules.special-chars=true \
-  -rules.sensitive=true \
-  -sensitive-keywords="password,token,secret,mytoken" \
-  -custom-patterns="credit.?card,ssn" \
-  ./...
+./custom-gcl run               # проверка
+./custom-gcl run --fix         # проверка + автоисправление правила 1
 ```
 
 ---

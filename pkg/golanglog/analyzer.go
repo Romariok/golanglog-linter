@@ -27,8 +27,18 @@ var cfg = config.Default()
 var Analyzer = &analysis.Analyzer{
 	Name:     "golanglog",
 	Doc:      doc,
-	Run:      run,
+	Run:      makeRun(cfg),
 	Requires: []*analysis.Analyzer{inspect.Analyzer},
+}
+
+// NewAnalyzer creates an analyzer with the given config. Used by the golangci-lint module plugin.
+func NewAnalyzer(c *config.Config) *analysis.Analyzer {
+	return &analysis.Analyzer{
+		Name:     "golanglog",
+		Doc:      doc,
+		Run:      makeRun(c),
+		Requires: []*analysis.Analyzer{inspect.Analyzer},
+	}
 }
 
 func init() {
@@ -52,32 +62,34 @@ func init() {
 	)
 }
 
-func run(pass *analysis.Pass) (interface{}, error) {
-	insp := pass.ResultOf[inspect.Analyzer].(*inspector.Inspector)
+func makeRun(c *config.Config) func(*analysis.Pass) (interface{}, error) {
+	return func(pass *analysis.Pass) (interface{}, error) {
+		insp := pass.ResultOf[inspect.Analyzer].(*inspector.Inspector)
 
-	nodeFilter := []ast.Node{(*ast.CallExpr)(nil)}
+		nodeFilter := []ast.Node{(*ast.CallExpr)(nil)}
 
-	insp.Preorder(nodeFilter, func(n ast.Node) {
-		call := n.(*ast.CallExpr)
+		insp.Preorder(nodeFilter, func(n ast.Node) {
+			call := n.(*ast.CallExpr)
 
-		msgArg, ok := rules.IsLogCall(pass, call)
-		if !ok {
-			return
-		}
+			msgArg, ok := rules.IsLogCall(pass, call)
+			if !ok {
+				return
+			}
 
-		if cfg.Rules.Lowercase {
-			rules.CheckLowercase(pass, call, msgArg)
-		}
-		if cfg.Rules.English {
-			rules.CheckEnglish(pass, call, msgArg)
-		}
-		if cfg.Rules.SpecialChars {
-			rules.CheckSpecialChars(pass, call, msgArg)
-		}
-		if cfg.Rules.Sensitive {
-			rules.CheckSensitive(pass, call, msgArg, cfg)
-		}
-	})
+			if c.Rules.Lowercase {
+				rules.CheckLowercase(pass, call, msgArg)
+			}
+			if c.Rules.English {
+				rules.CheckEnglish(pass, call, msgArg)
+			}
+			if c.Rules.SpecialChars {
+				rules.CheckSpecialChars(pass, call, msgArg)
+			}
+			if c.Rules.Sensitive {
+				rules.CheckSensitive(pass, call, msgArg, c)
+			}
+		})
 
-	return nil, nil
+		return nil, nil
+	}
 }

@@ -1,5 +1,7 @@
+//go:build plugin
+
 // Plugin is the golangci-lint module plugin entry point.
-// Build with: go build -buildmode=plugin -o golanglog.so ./plugin/
+// Build with: go build -tags plugin -buildmode=plugin -o golanglog.so ./plugin/
 package main
 
 import (

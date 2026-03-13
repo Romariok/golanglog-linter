@@ -13,7 +13,7 @@ Install the binary and run:
 
 ```bash
 go install github.com/romariok/golanglog-linter/cmd/golanglog-linter@latest
-go vet -vettool=$(which golanglog-linter) ./...
+go vet -vettool=$(go env GOPATH)/bin/golanglog-linter ./...
 ```
 
 Or build locally from the repository:
@@ -26,13 +26,13 @@ go vet -vettool=./golanglog-linter ./...
 With all flags explicitly set:
 
 ```bash
-go vet -vettool=$(which golanglog-linter) \
-  -golanglog-linter.rules.lowercase=true \
-  -golanglog-linter.rules.english=true \
-  -golanglog-linter.rules.special-chars=true \
-  -golanglog-linter.rules.sensitive=true \
-  -golanglog-linter.sensitive-keywords="password,token,secret,api_key" \
-  -golanglog-linter.custom-patterns="credit.?card,ssn" \
+go vet -vettool=$(go env GOPATH)/bin/golanglog-linter \
+  -lowercase=true \
+  -english=true \
+  -special-chars=true \
+  -sensitive=true \
+  -sensitive-keywords="password,token,secret,api_key" \
+  -custom-patterns="credit.?card,ssn" \
   ./...
 ```
 
@@ -100,12 +100,15 @@ Run:
 # install
 go install github.com/romariok/golanglog-linter/cmd/golanglog-linter@latest
 
+# ensure $GOPATH/bin is in PATH (add to ~/.zshrc or ~/.bashrc)
+export PATH="$PATH:$(go env GOPATH)/bin"
+
 # run with explicit flags
 golanglog-linter \
-  -rules.lowercase=true \
-  -rules.english=true \
-  -rules.special-chars=true \
-  -rules.sensitive=true \
+  -lowercase=true \
+  -english=true \
+  -special-chars=true \
+  -sensitive=true \
   -sensitive-keywords="password,token,secret,mytoken" \
   -custom-patterns="credit.?card,ssn" \
   ./...

@@ -223,6 +223,67 @@ GitHub Actions (`.github/workflows/ci.yml`):
 
 ---
 
+## Real-world Testing
+
+Проверил линтер на трёх open-source проектах: grafana/tempo, log/slog из стандартной библиотеки Go и go.uber.org/zap.
+
+### Результаты
+
+| Проект | Нарушений | Правило 1 | Правило 2 | Правило 3 | Правило 4 |
+|--------|:---------:|:---------:|:---------:|:---------:|:---------:|
+| grafana/tempo | 4 | 3 | 0 | 0 | 1 |
+| log/slog | 0 | 0 | 0 | 0 | 0 |
+| go.uber.org/zap | 4 | 3 | 0 | 1 | 0 |
+| **Итого** | **8** | **6** | **0** | **1** | **1** |
+
+### Найденные нарушения
+
+**grafana/tempo** — 4 нарушения:
+
+```
+cmd/tempo-query/main.go:92:14: log message should start with a lowercase letter
+        logger.Info("Server starts serving", ...)
+
+cmd/tempo-query/tempo/plugin.go:347:16: log message should start with a lowercase letter
+        b.logger.Info("FindTraces: fetching traces", ...)
+
+cmd/tempo-query/tempo/plugin.go:386:17: log message should start with a lowercase letter
+        b.logger.Info("FindTraces: failed to find traces, getTrace failed", ...)
+
+cmd/tempo-vulture/main.go:214: log message may contain sensitive data: found keyword "token"
+        logger.Warn(fmt.Sprintf("... %s ...", TempoAccessPolicyToken))
+```
+
+**log/slog** — нарушений нет.
+
+**go.uber.org/zap** — 4 нарушения (в тестовых и benchmark-файлах):
+
+```
+logger_bench_test.go:71: log message should start with a lowercase letter
+        log.Info("No context.")
+
+logger_bench_test.go:77: log message should start with a lowercase letter
+        log.Info("Boolean.", ...)
+
+logger_bench_test.go:84: log message should start with a lowercase letter
+        log.Info("ByteString.", ...)
+
+logger_test.go:541: log message must not contain special characters or emojis
+        logger.Info("silence!")
+```
+
+### Наблюдения
+
+Самое частое нарушение — заглавная первая буква: 6 из 8. Причём в tempo это production-код, не тесты. Такие мелочи не видны на code review и без линтера просто остаются.
+
+Отдельно про zap: сама библиотека логирования Uber нарушает правило 1 в benchmark-файлах. `"No context."`, `"Boolean."`, `"ByteString."` — заглавные буквы, точка в конце. Кто линтирует линтер.
+
+Одно пограничное срабатывание: в tempo под правило 4 попал `TempoAccessPolicyToken` как аргумент `fmt.Sprintf`. Это константа с именем переменной окружения, не реальный токен. Правило сработало по букве — слово `token` в имени аргумента есть — но утечки здесь нет. Поправить просто: не передавать имя переменной напрямую аргументом лог-функции.
+
+`log/slog` чист по всем четырём правилам. Паник и OOM на ни одном проекте не было.
+
+---
+
 ## Использование ИИ
 
 ИИ использовался для ускорения написания кода и документации. Все решения принимались вручную, каждая часть логики проверялась.

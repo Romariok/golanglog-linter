@@ -20,7 +20,7 @@
 
 ## Быстрый старт
 
-> Другие варианты запуска (go vet, Go Plugin, CLI флаги) — в [`docs/QUICKSTART.md`](docs/QUICKSTART.md).
+> Другие варианты запуска (go vet, CLI флаги) — в [`docs/QUICKSTART.md`](docs/QUICKSTART.md).
 
 ### Требования
 

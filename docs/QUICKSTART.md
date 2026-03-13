@@ -38,56 +38,7 @@ go vet -vettool=$(which golanglog-linter) \
 
 ---
 
-## Option 2 — Go plugin for `golangci-lint`
-
-> For new projects, Option 3 (Module Plugin) is recommended. Go Plugin requires CGO and matching build environments.
-
-Build the shared object:
-
-```bash
-CGO_ENABLED=1 go build -buildmode=plugin -o golanglog.so ./plugin/
-```
-
-Add to `.golangci.yml`:
-
-```yaml
-version: "2"
-
-linters:
-  enable:
-    - golanglog
-  settings:
-    custom:
-      golanglog:
-        path: ./golanglog.so
-        description: "Validates log message style and security"
-        original-url: github.com/romariok/golanglog-linter
-        settings:
-          rules:
-            lowercase: true
-            english: true
-            special-chars: true
-            sensitive: true
-          sensitive-keywords:
-            - password
-            - token
-            - secret
-            - api_key
-          custom-patterns:
-            - "credit.?card"
-            - "ssn"
-```
-
-Run:
-
-```bash
-golangci-lint run              # lint
-golangci-lint run --fix        # lint + auto-fix rule 1
-```
-
----
-
-## Option 3 — Module plugin for `golangci-lint` (recommended)
+## Option 2 — Module plugin for `golangci-lint` (recommended)
 
 Create `.custom-gcl.yml` in the project root:
 
@@ -143,7 +94,7 @@ Run:
 
 ---
 
-## Option 4 — CLI flags (direct binary invocation)
+## Option 3 — CLI flags (direct binary invocation)
 
 ```bash
 # install
